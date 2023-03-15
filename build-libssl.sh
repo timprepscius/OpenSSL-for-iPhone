@@ -102,7 +102,10 @@ prepare_target_source_dirs()
   # Prepare source dir
   SOURCEDIR="${CURRENTPATH}/src/${PLATFORM}-${ARCH}"
   mkdir -p "${SOURCEDIR}"
-  tar zxf "${CURRENTPATH}/${OPENSSL_ARCHIVE_FILE_NAME}" -C "${SOURCEDIR}"
+  mkdir -p temp
+  tar zxf "${CURRENTPATH}/${OPENSSL_ARCHIVE_FILE_NAME}" -C temp
+  `mv temp/openssl-*/ ${SOURCEDIR}/${OPENSSL_ARCHIVE_BASE_NAME}`
+
   cd "${SOURCEDIR}/${OPENSSL_ARCHIVE_BASE_NAME}"
   chmod u+x ./Configure
 }
@@ -415,10 +418,11 @@ OPENSSL_ARCHIVE_FILE_NAME="${OPENSSL_ARCHIVE_BASE_NAME}.tar.gz"
 if [ ! -e ${OPENSSL_ARCHIVE_FILE_NAME} ]; then
   echo "Downloading ${OPENSSL_ARCHIVE_FILE_NAME}..."
   OPENSSL_ARCHIVE_URL="https://www.openssl.org/source/${OPENSSL_ARCHIVE_FILE_NAME}"
+  OPENSSL_ARCHIVE_URL="https://github.com/quictls/openssl/archive/refs/tags/OpenSSL_1_1_1t-quic1.tar.gz"
 
   # Check whether file exists here (this is the location of the latest version for each branch)
   # -s be silent, -f return non-zero exit status on failure, -I get header (do not download)
-  curl ${CURL_OPTIONS} -sfI "${OPENSSL_ARCHIVE_URL}" > /dev/null
+  curl ${CURL_OPTIONS} -sfIL "${OPENSSL_ARCHIVE_URL}" > /dev/null
 
   # If unsuccessful, try the archive
   if [ $? -ne 0 ]; then
@@ -437,7 +441,7 @@ if [ ! -e ${OPENSSL_ARCHIVE_FILE_NAME} ]; then
 
   # Archive was found, so proceed with download.
   # -O Use server-specified filename for download
-  curl ${CURL_OPTIONS} -O "${OPENSSL_ARCHIVE_URL}"
+  curl ${CURL_OPTIONS} "${OPENSSL_ARCHIVE_URL}" -o "${OPENSSL_ARCHIVE_FILE_NAME}"
 
 else
   echo "Using ${OPENSSL_ARCHIVE_FILE_NAME}"
